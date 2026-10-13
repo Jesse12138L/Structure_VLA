@@ -14,7 +14,6 @@ A first run that has to prove the plumbing works, without waiting for a real tra
 """
 
 import argparse
-import copy
 import os
 import sys
 import time
@@ -82,6 +81,23 @@ def trainable_parameters(policy):
     return [p for p in policy.parameters() if p.requires_grad]
 
 
+def save_checkpoint(save_path, policy, run_config, norm_stats):
+    """Write the trainable weights, the config and the statistics to disk.
+
+    Only the trainable part is stored: the trunk is frozen, and scripts/test.py rebuilds it
+    from its name. The config and the statistics travel inside the checkpoint, so evaluation
+    needs no YAML.
+    """
+    torch.save(
+        {
+            "model_state_dict": trainable_state_dict(policy),
+            "config": run_config,
+            "norm_stats": norm_stats,
+        },
+        save_path,
+    )
+
+
 def evaluate(policy, loader, device):
     """Run the whole validation set and return two numbers.
 
@@ -145,7 +161,6 @@ def main():
 
     best_val = float("inf")
     best_epoch = -1
-    best_state = None
     for epoch in range(train_config["epochs"]):
         policy.train()
         train_total = 0.0
@@ -167,11 +182,13 @@ def main():
             ema.swap_out(trained_parameters, saved)
 
         # keep the best epoch rather than the last: closed-loop success is noisy, and the
-        # validation loss bottoming out early is common on a few hundred demonstrations
+        # validation loss bottoming out early is common on a few hundred demonstrations.
+        # Written out here rather than once after the loop, so a run that is killed or loses
+        # its container at hour six still leaves the best weights it had found.
         if val_loss < best_val:
             best_val = val_loss
             best_epoch = epoch + 1
-            best_state = copy.deepcopy(trainable_state_dict(policy))
+            save_checkpoint(save_path, policy, run_config, norm_stats)
 
         if epoch == 0 or (epoch + 1) % 5 == 0:
             print(f"epoch {epoch+1:4d}/{train_config['epochs']}  "
@@ -180,15 +197,8 @@ def main():
                   f"best={best_val:.4f}@{best_epoch}  "
                   f"({(time.time() - started) / 60:.1f} min)")
 
-    torch.save(
-        {
-            "model_state_dict": best_state,
-            "config": run_config,
-            "norm_stats": norm_stats,
-        },
-        save_path,
-    )
-    print(f"saved {save_path}  (best val {best_val:.4f} at epoch {best_epoch})")
+    print(f"best val {best_val:.4f} at epoch {best_epoch}; "
+          f"{save_path} holds the weights from that epoch")
 
 
 if __name__ == "__main__":
