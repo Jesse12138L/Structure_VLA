@@ -1,0 +1,29 @@
+# The baseline: the same frozen trunk and normalisation as smolvla_goal.yaml, with a
+# regression head instead of flow matching. Everything except `policy` and the `model`
+# block is identical, so a difference between the two runs is a difference in the head.
+policy: baseline
+
+data:
+  dataset_root: data/lerobot_libero
+  suite: libero_goal
+  camera_size: 256
+  chunk_size: 16
+  val_episode_frac: 0.1
+  overfit_task: null
+
+model:
+  trunk_layers: 16
+  baseline:
+    d_head: 512
+    n_heads: 8
+    d_ff: 2048
+    dropout: 0.0
+
+train:
+  batch_size: 32
+  epochs: 100
+  lr: 1.0e-4
+  use_ema: false
+  ema_power: 0.75
+  device: cuda
+  save_path: checkpoints/baseline_goal.pt

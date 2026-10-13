@@ -1,0 +1,13 @@
+# The dataset is 1.9 GB and re-downloads itself on the first run of data/libero_data.py
+data/lerobot_libero/
+
+# Trained weights and the videos evaluation writes
+checkpoints/
+videos/
+videos_m1/
+
+# The picture data/libero_data.py draws
+data/libero_frames.png
+
+__pycache__/
+*.pyc

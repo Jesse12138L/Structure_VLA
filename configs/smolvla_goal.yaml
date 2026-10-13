@@ -1,0 +1,33 @@
+# Simplified SmolVLA on the ten libero_goal tasks.
+#
+# The checkpoint stores the config it was trained with, so scripts/test.py needs no YAML.
+# The command line may override a few of these scalars, but it cannot add a new key.
+policy: smolvla
+
+data:
+  dataset_root: data/lerobot_libero
+  suite: libero_goal
+  camera_size: 256        # the dataset's native size. 512 gives 4x the image tokens and
+                          # costs 4x the time (measured: 33 samples/s against 133)
+  chunk_size: 16          # actions predicted and executed per plan; 1.6 s at 10 fps
+  val_episode_frac: 0.1   # held-out demonstrations, split by episode and not by frame
+  overfit_task: null      # a LIBERO task id 0-9 inside the suite, or null for all ten
+
+model:
+  trunk_layers: 16        # keep 16 of SmolVLM2's 32 text layers, as SmolVLA does
+  smolvla:
+    d_exp: 512            # the expert's width; SmolVLA uses 0.75 of the trunk's 960
+    n_exp_layers: 4
+    n_heads: 8
+    d_ff: 2048
+    dropout: 0.0          # raise this if the validation loss separates from the training
+    num_flow_steps: 10    # Euler steps at inference, the number SmolVLA uses
+
+train:
+  batch_size: 32
+  epochs: 100
+  lr: 1.0e-4
+  use_ema: false          # a shadow copy of the weights, evaluated instead of the live ones
+  ema_power: 0.75
+  device: cuda
+  save_path: checkpoints/smolvla_goal.pt
