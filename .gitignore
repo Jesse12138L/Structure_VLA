@@ -11,3 +11,6 @@ data/libero_frames.png
 
 __pycache__/
 *.pyc
+
+
+logs/
