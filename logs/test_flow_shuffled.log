@@ -1,0 +1,36 @@
+[robosuite WARNING] No private macro file found! (__init__.py:7)
+WARNING:robosuite_logs:No private macro file found!
+[robosuite WARNING] It is recommended to use a private macro file (__init__.py:8)
+WARNING:robosuite_logs:It is recommended to use a private macro file
+[robosuite WARNING] To setup, run: python /home/lyz/miniconda3/envs/lerobot/lib/python3.12/site-packages/robosuite/scripts/setup_macros.py (__init__.py:9)
+WARNING:robosuite_logs:To setup, run: python /home/lyz/miniconda3/envs/lerobot/lib/python3.12/site-packages/robosuite/scripts/setup_macros.py
+Loading weights:   0%|          | 0/489 [00:00<?, ?it/s]Loading weights:  68%|██████▊   | 333/489 [00:00<00:00, 3324.21it/s]Loading weights: 100%|██████████| 489/489 [00:00<00:00, 3816.91it/s]
+[test] policy=smolvla  suite=libero_goal  camera_size=128  chunk=16
+[info] using task orders [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+[info] using task orders [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+[test] instructions shuffled: each task is given the next task's instruction
+Local assets not found. Downloading from HuggingFace Hub...
+Assets already downloaded at /home/lyz/.cache/libero/assets
+task  0  0/5  (  0.0%)  asked: put the bowl on the stove
+            (the scene's real task: open the middle drawer of the cabinet)
+task  1  0/5  (  0.0%)  asked: put the wine bottle on top of the cabinet
+            (the scene's real task: put the bowl on the stove)
+task  2  0/5  (  0.0%)  asked: open the top drawer and put the bowl inside
+            (the scene's real task: put the wine bottle on top of the cabinet)
+task  3  0/5  (  0.0%)  asked: put the bowl on top of the cabinet
+            (the scene's real task: open the top drawer and put the bowl inside)
+task  4  0/5  (  0.0%)  asked: push the plate to the front of the stove
+            (the scene's real task: put the bowl on top of the cabinet)
+task  5  0/5  (  0.0%)  asked: put the cream cheese in the bowl
+            (the scene's real task: push the plate to the front of the stove)
+task  6  0/5  (  0.0%)  asked: turn on the stove
+            (the scene's real task: put the cream cheese in the bowl)
+task  7  0/5  (  0.0%)  asked: put the bowl on the plate
+            (the scene's real task: turn on the stove)
+task  8  0/5  (  0.0%)  asked: put the wine bottle on the rack
+            (the scene's real task: put the bowl on the plate)
+task  9  0/5  (  0.0%)  asked: open the middle drawer of the cabinet
+            (the scene's real task: put the wine bottle on the rack)
+
+overall 0/50 = 0.0%  (5.5 min)
+these are the shuffled numbers; compare them against a run without the flag

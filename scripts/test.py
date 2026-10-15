@@ -5,6 +5,11 @@ Run it as a module, from the project root, inside the `lerobot` conda env:
     python -m scripts.test --checkpoint checkpoints/smolvla_goal.pt --episodes 5
 
 The checkpoint carries the config it was trained with, so no config file is needed here.
+
+For every task one success and one failure are recorded (a task that never fails, or never
+succeeds, simply has only the one kind). The file name says which task it was:
+
+    videos/task03_open_the_top_drawer_and_put_the_bowl_inside_start02_success.mp4
 """
 
 import argparse
@@ -31,9 +36,10 @@ def parse_args():
     parser.add_argument("--episodes", type=int, default=5,
                         help="start states per task, out of the 50 LIBERO provides")
     parser.add_argument("--save-video", action=argparse.BooleanOptionalAction, default=True,
-                        help="record the first few successes and failures")
+                        help="record successes and failures of every task")
     parser.add_argument("--video-dir", type=str, default="videos")
-    parser.add_argument("--video-per-outcome", type=int, default=2)
+    parser.add_argument("--video-per-outcome", type=int, default=1,
+                        help="videos kept per task for each outcome (success and fail)")
     parser.add_argument("--shuffle-instruction", action="store_true",
                         help="give every task another task's instruction")
     parser.add_argument("--device", type=str, default="cuda")
@@ -106,6 +112,19 @@ def save_video(frames, path):
             writer.append_data((frame * 255).astype("uint8"))
 
 
+def video_name(task_id, real_instruction, asked_for, start_index, outcome):
+    """A file name that says which task the scene was.
+
+    With --shuffle-instruction the policy is told a different instruction from the scene's
+    own, so that one is added too; otherwise the video would look like the policy failed the
+    task it was named after.
+    """
+    name = f"task{task_id:02d}_{real_instruction.replace(' ', '_')}"
+    if asked_for != real_instruction:
+        name += f"_told_{asked_for.replace(' ', '_')}"
+    return f"{name}_start{start_index:02d}_{outcome}.mp4"
+
+
 def main():
     args = parse_args()
     device = torch.device(args.device if torch.cuda.is_available() else "cpu")
@@ -127,7 +146,6 @@ def main():
     if args.save_video:
         os.makedirs(args.video_dir, exist_ok=True)
 
-    saved_videos = {"success": 0, "fail": 0}
     total_successes = 0
     total_episodes = 0
     started = time.time()
@@ -140,6 +158,7 @@ def main():
                 asked_for = languages[(task_id + 1) % len(languages)]
 
             task_successes = 0
+            videos_of_task = {"success": 0, "fail": 0}    # counted per task, not overall
             for start_index in range(args.episodes):
                 success, steps, frames, _ = run_episode(
                     env, policy, task_id, start_index, instructions[asked_for],
@@ -147,12 +166,11 @@ def main():
                 task_successes += int(success)
 
                 outcome = "success" if success else "fail"
-                if args.save_video and saved_videos[outcome] < args.video_per_outcome:
-                    saved_videos[outcome] += 1
-                    path = os.path.join(
-                        args.video_dir,
-                        f"task{task_id:02d}_start{start_index:02d}_{outcome}.mp4")
-                    save_video(frames, path)
+                if args.save_video and videos_of_task[outcome] < args.video_per_outcome:
+                    videos_of_task[outcome] += 1
+                    name = video_name(task_id, real_instruction, asked_for, start_index,
+                                      outcome)
+                    save_video(frames, os.path.join(args.video_dir, name))
 
             total_successes += task_successes
             total_episodes += args.episodes

@@ -11,10 +11,18 @@ Run it as a module, from the project root, inside the `lerobot` conda env:
 A first run that has to prove the plumbing works, without waiting for a real training run:
 
     python -m scripts.train --config configs/smolvla_goal.yaml --overfit-task 8 --epochs 30
+
+Every epoch is saved, next to the save path in a folder of the same name:
+
+    checkpoints/smolvla_goal/epoch_001.pt, epoch_002.pt, ...
+
+and the epoch with the lowest validation loss is also copied to the save path itself,
+checkpoints/smolvla_goal.pt, which is the file scripts/test.py is normally pointed at.
 """
 
 import argparse
 import os
+import shutil
 import sys
 import time
 
@@ -131,6 +139,9 @@ def main():
     train_config = run_config["train"]
     save_path = train_config["save_path"]
     os.makedirs(os.path.dirname(save_path) or ".", exist_ok=True)
+    # checkpoints/smolvla_goal.pt -> checkpoints/smolvla_goal/, where every epoch is kept
+    epochs_dir = os.path.splitext(save_path)[0]
+    os.makedirs(epochs_dir, exist_ok=True)
 
     if not torch.cuda.is_available() and train_config["device"] == "cuda":
         print("[warn] cuda is not available, falling back to cpu")
@@ -173,22 +184,27 @@ def main():
                 ema.step(trained_parameters)
             train_total += float(loss.detach()) * batch["images"].size(0)
 
-        if ema is None:
-            val_loss, reference = evaluate(policy, val_loader, device)
-        else:
-            # evaluate the averaged weights, then put the live ones back
+        # Evaluate and save under the same weights. With EMA those are the averaged ones, so
+        # the checkpoint has to be written before the live weights are put back; otherwise
+        # it would hold weights that were never the ones the validation loss was measured on.
+        saved = None
+        if ema is not None:
             saved = ema.swap_in(trained_parameters)
-            val_loss, reference = evaluate(policy, val_loader, device)
+        val_loss, reference = evaluate(policy, val_loader, device)
+        epoch_path = os.path.join(epochs_dir, f"epoch_{epoch + 1:03d}.pt")
+        save_checkpoint(epoch_path, policy, run_config, norm_stats)
+        if ema is not None:
             ema.swap_out(trained_parameters, saved)
 
-        # keep the best epoch rather than the last: closed-loop success is noisy, and the
-        # validation loss bottoming out early is common on a few hundred demonstrations.
-        # Written out here rather than once after the loop, so a run that is killed or loses
-        # its container at hour six still leaves the best weights it had found.
+        # Every epoch is kept, because the validation loss and the closed-loop success rate
+        # do not always agree on which epoch is best. The lowest-validation epoch is also
+        # copied to save_path, so evaluation can use one fixed file name. Written out as the
+        # run goes, so a run that is killed or loses its container at hour six still leaves
+        # everything it had found.
         if val_loss < best_val:
             best_val = val_loss
             best_epoch = epoch + 1
-            save_checkpoint(save_path, policy, run_config, norm_stats)
+            shutil.copyfile(epoch_path, save_path)
 
         if epoch == 0 or (epoch + 1) % 5 == 0:
             print(f"epoch {epoch+1:4d}/{train_config['epochs']}  "
@@ -197,8 +213,8 @@ def main():
                   f"best={best_val:.4f}@{best_epoch}  "
                   f"({(time.time() - started) / 60:.1f} min)")
 
-    print(f"best val {best_val:.4f} at epoch {best_epoch}; "
-          f"{save_path} holds the weights from that epoch")
+    print(f"best val {best_val:.4f} at epoch {best_epoch}; {save_path} holds the weights from "
+          f"that epoch, and {epochs_dir}/ holds every epoch")
 
 
 if __name__ == "__main__":
