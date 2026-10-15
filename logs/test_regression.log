@@ -1,24 +1,0 @@
-[robosuite WARNING] No private macro file found! (__init__.py:7)
-WARNING:robosuite_logs:No private macro file found!
-[robosuite WARNING] It is recommended to use a private macro file (__init__.py:8)
-WARNING:robosuite_logs:It is recommended to use a private macro file
-[robosuite WARNING] To setup, run: python /home/lyz/miniconda3/envs/lerobot/lib/python3.12/site-packages/robosuite/scripts/setup_macros.py (__init__.py:9)
-WARNING:robosuite_logs:To setup, run: python /home/lyz/miniconda3/envs/lerobot/lib/python3.12/site-packages/robosuite/scripts/setup_macros.py
-Loading weights:   0%|          | 0/489 [00:00<?, ?it/s]Loading weights:  65%|██████▍   | 316/489 [00:00<00:00, 3150.67it/s]Loading weights: 100%|██████████| 489/489 [00:00<00:00, 3724.99it/s]
-[test] policy=baseline  suite=libero_goal  camera_size=128  chunk=16
-[info] using task orders [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-[info] using task orders [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-Local assets not found. Downloading from HuggingFace Hub...
-Assets already downloaded at /home/lyz/.cache/libero/assets
-task  0  5/5  (100.0%)  asked: open the middle drawer of the cabinet
-task  1  4/5  ( 80.0%)  asked: put the bowl on the stove
-task  2  4/5  ( 80.0%)  asked: put the wine bottle on top of the cabinet
-task  3  4/5  ( 80.0%)  asked: open the top drawer and put the bowl inside
-task  4  5/5  (100.0%)  asked: put the bowl on top of the cabinet
-task  5  4/5  ( 80.0%)  asked: push the plate to the front of the stove
-task  6  3/5  ( 60.0%)  asked: put the cream cheese in the bowl
-task  7  5/5  (100.0%)  asked: turn on the stove
-task  8  5/5  (100.0%)  asked: put the bowl on the plate
-task  9  2/5  ( 40.0%)  asked: put the wine bottle on the rack
-
-overall 41/50 = 82.0%  (3.0 min)
